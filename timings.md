@@ -21,3 +21,7 @@
 |4|Astronaut|5|
 |3|Astronaut|6|
 |6|Astronaut|4|
+|3|Watering|6|
+|6|Watering|4|
+|1|Watering|4|
+|2|Watering|10|
