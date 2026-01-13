@@ -25,3 +25,6 @@
 |6|Watering|4|
 |1|Watering|4|
 |2|Watering|10|
+
+
+Note: this is not perfect because the times seem to have an element of randomness to them
