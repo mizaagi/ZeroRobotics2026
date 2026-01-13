@@ -19,3 +19,5 @@
 |6|5|3|
 |5|Astronaut|4|
 |4|Astronaut|5|
+|3|Astronaut|6|
+|6|Astronaut|4|
