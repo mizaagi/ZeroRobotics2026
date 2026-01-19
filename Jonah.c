@@ -32,17 +32,21 @@ void init(){
 }
 
 void wCrop(int plotNum, int cropNum) {
+	// Function to move to a plot, plant a specific crop, and set time data for the crop
     game.MovePlot(plotNum);
     game.PlantCrop(plotNum, cropNum);
     waterTimes[plotNum-1] = game.GetTime();
     charge[plotNum-1] = 1;
+	// Determines what the crop's plant time is and sets the PT times based on the crop number
     PT[plotNum-1] = cropNum == 1 ? 6.0 : cropNum == 2 ? 8.0 : cropNum == 3 ? 5.0 : cropNum == 4 ? 12.0 : cropNum == 5 ? 3.0 : 9.0;
     game.WaterCrop(plotNum);
-    int i = cropValue[cropNum-1];
+	// Crop value depreciation
     cropValue[cropNum-1] = cropValue[cropNum-1] * 0.75;
+	// If the crop being planted is the bonus crop, set the bonus crop variable to zero to show that a new bonus crop can be generated
     if (cropNum == bonus) bonus = 0;
 }
 void WaterCrop(int plotNum) {
+	// 
     game.MovePlot(plotNum);
     game.WaterCrop(plotNum);
     waterTimes[plotNum-1] = game.GetTime();
@@ -56,8 +60,10 @@ void HarvestCrop(int plotNum) {
     int hi = game.GetHarvestScore();
     game.MovePlot(plotNum);
     game.HarvestCrop(plotNum);
+	// Checking harvest score again to see if we have successfully harvested
     int ne = game.GetHarvestScore();
     if (hi != ne) {
+		// If the difference in the two harvest score values is greater than the plant time, 
         if (ne-hi > PT[plotNum-1] && astro < 2) {
             astro++;
             game.MoveAstronaut();
@@ -83,6 +89,7 @@ void helper(int pn) {
             HarvestCrop(pn);
         }
     } else {
+		// The most valuable crop to plant
         int bestcrop = 1;
         for (int i = 0; i < 6; i++) {
             bestcrop = cropValue[i] > cropValue[bestcrop-1] ? i+1 : bestcrop;
@@ -101,6 +108,7 @@ void helper(int pn) {
         //     }
             
         // }
+		// If the robot has not gotten the bonus crop yet, that crop is automatically the most valuable
         if (bonus != 0) bestcrop = bonus;
         // DEBUG(("%.2f", cropValue[bestcrop-1]));
         if (game.GetTime()-waterTimes[pn-1] > PT[pn-1]-2) {
