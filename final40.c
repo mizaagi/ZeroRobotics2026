@@ -1,3 +1,9 @@
+// NOTE: As of right now, this code (when added at the end of Jonah's current code at t = 180) only produces results of around 130 points,
+//       which is less than Jonah's current average of 150-160.
+
+
+
+
 void wCropFinal40(int plotNum, int cropNum) {
 	// Function to move to a plot, plant a specific crop, and set time data for the crop
     game.MovePlot(plotNum);
@@ -33,12 +39,13 @@ void helperFinal40(int pn) {
 }
 
 void final40() {
+    DEBUG(("FINAL40 HAS BEGUN"));
     // Assume that bonus crops have been obtained
     // id 5, 3, 1
     cropValue[1] = cropValue[4];
     while (game.GetTime() < 239) { // Runnable because at this point we are just running code until time runs out
         int f = 0; // Variable to simulate for loop within while loop; traverse through list of plots;
-        // After watering, f will reset to zero so the loop can continue if possible
+        // After watering, i will reset to zero so the loop can continue if possible
         int plotTravel[3] = {6, 3, 1}; // Desired path
         while (game.GetWaterUnits() > 0) {
             helperFinal40(plotTravel[f]);
@@ -48,4 +55,5 @@ void final40() {
         game.MoveWatering();
         game.FillWateringCan();
     }
+    game.EndGame();
 }
