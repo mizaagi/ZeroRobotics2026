@@ -25,7 +25,7 @@ void helperFinal40(int pn) {
         // DEBUG(("%d", charge[pn-1]));
         if (charge[pn-1] == 2) {
             HarvestCrop(pn);
-            if (pn == 5) bccheck = true;
+            // if (pn == 5) bccheck = true;
         }
         else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
         else {wCropFinal40(pn, bestcrop);charge[pn-1] = 1;}
@@ -36,14 +36,14 @@ void final40() {
     // Assume that bonus crops have been obtained
     // id 5, 3, 1
     cropValue[1] = cropValue[4];
-    while (true) { // Runnable because at this point we are just running code until time runs out
-        i = 0; // Variable to simulate for loop within while loop; traverse through list of plots;
-        // After watering, i will reset to zero so the loop can continue if possible
-        int[] plotTravel = {6, 3, 1}; // Desired path
-        while (game.getWaterUnits() > 0) {
-            helperFinal40(i);
-            i++;
-            if (i == 3) i = 0;
+    while (game.GetTime() < 239) { // Runnable because at this point we are just running code until time runs out
+        int f = 0; // Variable to simulate for loop within while loop; traverse through list of plots;
+        // After watering, f will reset to zero so the loop can continue if possible
+        int plotTravel[3] = {6, 3, 1}; // Desired path
+        while (game.GetWaterUnits() > 0) {
+            helperFinal40(plotTravel[f]);
+            f++;
+            if (f == 3) f = 0;
         }
         game.MoveWatering();
         game.FillWateringCan();
