@@ -28,7 +28,7 @@ void helperFinal40(int pn) {
             if (pn == 5) bccheck = true;
         }
         else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
-        else {wCrop(pn, bestcrop);charge[pn-1] = 1;}
+        else {wCropFinal40(pn, bestcrop);charge[pn-1] = 1;}
     }
 }
 
