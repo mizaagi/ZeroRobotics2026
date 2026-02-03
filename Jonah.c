@@ -21,8 +21,8 @@ void init(){
     // initializers to appropriate values.
     bonus = 0;
     astro = 0;
-	waterTimes[0],waterTimes[1],waterTimes[2],waterTimes[3],waterTimes[4],waterTimes[5] = 0,0,0,0,0,0;
-	PT[0],PT[1],PT[2],PT[3],PT[4],PT[5] = 0,0,0,0,0,0;
+	waterTimes[0],waterTimes[1],waterTimes[2],waterTimes[3],waterTimes[4],waterTimes[5] = 0.0,0.0,0.0,0.0,0.0,0.0;
+	PT[0],PT[1],PT[2],PT[3],PT[4],PT[5] = 0.0,0.0,0.0,0.0,0.0,0.0;
 	PlantTime[0], PlantTime[1], PlantTime[2], PlantTime[3], PlantTime[4], PlantTime[5] = 6.0, 8.0, 5.0, 12.0, 3.0, 9.0;
 	charge[0], charge[1], charge[2], charge[3], charge[4], charge[5] = 0,0,0,0,0,0;
 	cropValue[0] = 6.0;
@@ -36,8 +36,16 @@ void init(){
 }
 
 void wCrop(int plotNum, int cropNum) {
+    while (game.GetWaterUnits() == 0) {
+        game.MoveWatering(); 
+        game.FillWateringCan();
+        if (game.OpponentAtWatering()) {
+            game.SetWait(2);
+        }
+    }
     //moves to plot
     game.MovePlot(plotNum);
+    if (game.GetTime() > 240) return;
     //plants the crop given in the 
     game.PlantCrop(plotNum, cropNum);
     waterTimes[plotNum-1] = game.GetTime();
@@ -46,32 +54,41 @@ void wCrop(int plotNum, int cropNum) {
     game.WaterCrop(plotNum);
     int i = cropValue[cropNum-1];
     cropValue[cropNum-1] = cropValue[cropNum-1] * 0.75;
-    if (cropNum == bonus) bonus = 0;
+    if (cropNum == bonus) {bonus = 0; needastro = false;}
 }
 void WaterCrop(int plotNum) {
+    while (game.GetWaterUnits() == 0) {
+        game.MoveWatering(); 
+        game.FillWateringCan();
+        if (game.OpponentAtWatering()) {
+            game.SetWait(2);
+        }
+    }
     game.MovePlot(plotNum);
+    if (game.GetTime() > 240) return;
     game.WaterCrop(plotNum);
     waterTimes[plotNum-1] = game.GetTime();
     charge[plotNum-1] = 2;
-    if (240-game.GetTime() > 20 && game.GetWaterUnits() == 0) {
-        game.MoveWatering(); 
-        game.FillWateringCan();
-    }
+    // if (240-game.GetTime() > 20 && game.GetWaterUnits() == 0) {
+    //     game.MoveWatering(); 
+    //     game.FillWateringCan();
+    // }
 }
 void HarvestCrop(int plotNum) {
     int astronumprior = game.GetCurrentBonusIndex();
-    int hi = game.GetHarvestScore();
+    int harvestScorePrior = game.GetHarvestScore();
     game.MovePlot(plotNum);
+    if (game.GetTime() > 240) return;
     game.HarvestCrop(plotNum);
     int astronumafter = game.GetCurrentBonusIndex();
-    int ne = game.GetHarvestScore();
-    if (hi != ne) {
+    int harvestScoreAfter = game.GetHarvestScore();
+    if (harvestScorePrior != harvestScoreAfter) {
         if (astronumafter > astronumprior && astronumafter != 3) {
-            astro+=1;
+            astro = astronumafter;
             game.MoveAstronaut();
             bonus = game.GetBonusCrop();
-            int placeholder = game.GetCurrentBonusIndex();
-            DEBUG(("place %d", placeholder));
+            // int placeholder = game.GetCurrentBonusIndex();
+            // DEBUG(("place %d", placeholder));
             if (bonus == 0) needastro = true;
             else needastro = false;
             
@@ -85,6 +102,10 @@ void HarvestCrop(int plotNum) {
 }
 
 void helper(int pn) {
+    if (240-game.GetTime() > 20 && game.GetWaterUnits() == 0) {
+        game.MoveWatering(); 
+        game.FillWateringCan();
+    }
     if (needastro && game.GetPlotsExplored() >= 4 && bonus == 0) {
         game.MoveAstronaut();
         bonus = game.GetBonusCrop();
@@ -101,7 +122,7 @@ void helper(int pn) {
         if (Time-waterTimes[pn-1] > PT[pn-1] && charge[pn-1] == 2) {
             HarvestCrop(pn);
             if (Time < 230) {
-                if (Time-waterTimes[pn-1] > 2.2*PlantTime[bestcrop-1]) wCrop(pn, bestcrop);
+                if (240-Time > 2.5*PlantTime[bestcrop-1]) wCrop(pn, bestcrop);
                 else wCrop(pn, 5);
             }
             if (game.GetWaterUnits() == 0 && Time < 232) {
@@ -127,10 +148,7 @@ void helper(int pn) {
         }
     } else {
         if (game.GetTime() == 0) {wCrop(pn, bestcrop);charge[pn-1] = 1;}
-        DEBUG(("TIME: %.2f", Time));
-        DEBUG(("WT: %.2f", waterTimes[pn-1]));
-        DEBUG(("PT: %.2f", PT[pn-1]));
-        if (Time-waterTimes[pn-1] > PT[pn-1]-2) {
+        if (Time-waterTimes[pn-1] > PT[pn-1]-2 || !(charge[pn-1] == 0 || charge[pn-1] == 1 || charge[pn-1] == 2)) {
             DEBUG(("Plot: %d", pn));
             if (charge[pn-1] == 2) {
                 HarvestCrop(pn);
@@ -140,14 +158,6 @@ void helper(int pn) {
             else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
             else {wCrop(pn, bestcrop);charge[pn-1] = 1;}
         }
-    }
-}
-
-void helper(int pn, int cropNum) {
-    if (game.GetTime()-waterTimes[pn-1] > PT[pn-1]) {
-        if (charge[pn-1] == 2) {HarvestCrop(pn); helper(pn);}
-        else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
-        else {wCrop(pn, cropNum); charge[pn-1] = 1;}
     }
 }
 
@@ -180,6 +190,7 @@ void helperFinal40(int pn) {
 	// helper determines if robot is able to do something with the plot
     int bestcrop = 1;
     for (int i = 0; i < 3; i++) {
+        if (240-game.GetTime() < 2.5*PlantTime[bestcrop-1]) cropValue[i] = 0;
         bestcrop = cropValue[i] > cropValue[bestcrop-1] ? i+1 : bestcrop;
     }
     // DEBUG(("%.2f", cropValue[bestcrop-1]));
@@ -233,91 +244,88 @@ void final40() {
 void loop() {
     if (count == 0) {
         cropValue[0] = 6.0;
-	cropValue[1] = 7.0;
-	cropValue[2] = 5.0;
-	cropValue[3] = 11.0;
-	cropValue[4] = 3.0;
-	cropValue[5] = 8.0; 
+        cropValue[1] = 7.0;
+        cropValue[2] = 5.0;
+        cropValue[3] = 11.0;
+        cropValue[4] = 3.0;
+        cropValue[5] = 8.0; 
         DEBUG(("%.2f", cropValue[0]));
-    // wCrop(1,2);
-    helper(1);
-// 	wCrop(3,4);
-	helper(3);
-// 	wCrop(6,6);
-    helper(6);
-// 	wCrop(5,1);
-	helper(5);
-	game.MoveAstronaut();
-    bonus = game.GetBonusCrop();
-// 	wCrop(4,bonus);
-	helper(4);
-// 	WaterCrop(3);
-	helper(3);
-	
-	game.MoveWatering(); 
-	game.FillWateringCan();
-	game.GetWaterUnits();
-	count = 1;
-  } else if (astro < 2) {
-  if (count == 1) {
-      helper(1);
-      count = 3;
-  }
-  if (count == 2) {
-      helper(2);
-      
-      if (game.GetTime() < 220) {
-        game.MoveWatering(); 
-        game.FillWateringCan();
-      }
-      count = 1;
-  }
-  if (count == 3) {
-      helper(3);
-      count = 4;
-  }
-  if (count == 4) {
-      helper(4);
-        helper(5);
-        count = 6;
-      
-  }
-  if (count == 6) {
-      helper(6);
-      count = 2;
-  }
-  } else {
-    if (count == 1) {
+        // wCrop(1,2);
         helper(1);
-        count = 3;
-    }
-  if (count == 2) {
-      helper(2);
-      DEBUG(("BROTHER"));
-      
-      if (game.GetTime() < 220) {
+        // 	wCrop(3,4);
+        helper(3);
+        // 	wCrop(6,6);
+        helper(6);
+        // 	wCrop(5,1);
+        helper(5);
+        game.MoveAstronaut();
+        bonus = game.GetBonusCrop();
+        // 	wCrop(4,bonus);
+        helper(4);
+        // 	WaterCrop(3);
+        helper(3);
         game.MoveWatering(); 
         game.FillWateringCan();
-      }
-      count = 1;
-  }
-  if (count == 3) {
-      helper(3);
-      dohelp(4);
-      dohelp(5);
-      count = 6;
-  }  
-  if (count == 6) {
-      helper(6);
-      count = 2;
-  }
-//   }
-    // final40();
-  }
-  if (game.GetTime() < 239) loop();
-  else {
-      game.GetDistanceTraveled(); game.GetPlotsExplored(); game.GetCurrentBonusIndex();
-      for (int i = 0; i < 6; i++) DEBUG(("%.2f", cropValue[i]));
-  }
+        game.GetWaterUnits();
+        count = 1;
+    } else if (game.GetCurrentBonusIndex() < 3) {
+        if (count == 1) {
+            helper(1);
+            count = 3;
+        }
+        if (count == 2) {
+            helper(2);
+            if (game.GetTime() < 220) {
+                game.MoveWatering(); 
+                game.FillWateringCan();
+            }
+            count = 1;
+        }
+        if (count == 3) {
+            helper(3);
+            count = 4;
+        }
+        if (count == 4) {
+            helper(4);
+            helper(5);
+            count = 6;
+        }
+        if (count == 6) {
+            helper(6);
+            count = 2;
+        }
+        DEBUG(("ASTRO: %d", astro));
+    } else {
+        // if (count == 1) {
+        //     helper(1);
+        //     count = 3;
+        // }
+        // if (count == 2) {
+        //     helper(2);
+        //     DEBUG(("BROTHER"));
+        //     if (game.GetTime() < 220) {
+        //         game.MoveWatering(); 
+        //         game.FillWateringCan();
+        //     }
+        //     count = 1;
+        // }
+        // if (count == 3) {
+        //     helper(3);
+        //     dohelp(4);
+        //     dohelp(5);
+        //     count = 6;
+        // }  
+        // if (count == 6) {
+        //     helper(6);
+        //     count = 2;
+        // }
+        final40();
+    }
+    if (game.GetTime() < 239) loop();
+    else {
+        game.GetDistanceTraveled(); game.GetPlotsExplored(); game.GetCurrentBonusIndex();
+        for (int i = 0; i < 6; i++) DEBUG(("%.2f", cropValue[i]));
+    }
+}
 	
 }
