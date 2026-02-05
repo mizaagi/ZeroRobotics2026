@@ -17,6 +17,8 @@ int bonus;
 
 bool needastro;
 
+int stopper;
+
 void init(){
     // initializers to appropriate values.
     bonus = 0;
@@ -33,6 +35,7 @@ void init(){
 	cropValue[5] = 8.0; 
 	count = 0;
 	needastro = true;
+	stopper = 0;
 }
 
 void wCrop(int plotNum, int cropNum) {
@@ -52,7 +55,6 @@ void wCrop(int plotNum, int cropNum) {
     charge[plotNum-1] = 1;
     PT[plotNum-1] = cropNum == 1 ? 6.0 : cropNum == 2 ? 8.0 : cropNum == 3 ? 5.0 : cropNum == 4 ? 12.0 : cropNum == 5 ? 3.0 : 9.0;
     game.WaterCrop(plotNum);
-    int i = cropValue[cropNum-1];
     cropValue[cropNum-1] = cropValue[cropNum-1] * 0.75;
     if (cropNum == bonus) {bonus = 0; needastro = false;}
 }
@@ -187,21 +189,51 @@ void wCropFinal40(int plotNum, int cropNum) {
 
 // FINAL 40 CODE IS BELOW
 void helperFinal40(int pn) {
+    float Time = game.GetTime();
 	// helper determines if robot is able to do something with the plot
     int bestcrop = 1;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 6; i++) {
         if (240-game.GetTime() < 2.5*PlantTime[bestcrop-1]) cropValue[i] = 0;
         bestcrop = cropValue[i] > cropValue[bestcrop-1] ? i+1 : bestcrop;
     }
     // DEBUG(("%.2f", cropValue[bestcrop-1]));
-    if (game.GetTime()-waterTimes[pn-1] > PT[pn-1]-2) {
-        // DEBUG(("%d", charge[pn-1]));
-        if (charge[pn-1] == 2) {
+    // if (game.GetTime()-waterTimes[pn-1] > PT[pn-1]-2) {
+    //     // DEBUG(("%d", charge[pn-1]));
+    //     if (charge[pn-1] == 2) {
+    //         HarvestCrop(pn);
+    //     }
+    //     else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
+    //     else {wCropFinal40(pn, bestcrop);charge[pn-1] = 1;}
+    // }
+    
+    if (240-Time < 14) {
+        if (Time-waterTimes[pn-1] > PT[pn-1]-2 && charge[pn-1] == 2) {
             HarvestCrop(pn);
         }
-        else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
-        else {wCropFinal40(pn, bestcrop);charge[pn-1] = 1;}
+         else if (charge[pn-1] == 1 && 240-Time > PT[pn-1] && Time-waterTimes[pn-1] > PT[pn-1] && Time < 230) {
+            WaterCrop(pn);
+            bool someelsebetter = false;
+            for (int i = 0; i < 6; i++) {
+                if (PT[i] + waterTimes[i] < PT[pn-1]+waterTimes[pn-1] && PT[i] != 0) someelsebetter = true;
+            }
+            if (!someelsebetter) {
+                game.SetWait(PT[pn-1]);
+                HarvestCrop(pn);
+            }
+        }
+    } else {
+        if (Time-waterTimes[pn-1] > PT[pn-1]-2 || !(charge[pn-1] == 0 || charge[pn-1] == 1 || charge[pn-1] == 2)) {
+            DEBUG(("Plot: %d", pn));
+            if (charge[pn-1] == 2) {
+                HarvestCrop(pn);
+                
+                helper(pn);
+            }
+            else if (charge[pn-1] == 1) {WaterCrop(pn);charge[pn-1] = 2;}
+            else {wCrop(pn, bestcrop);charge[pn-1] = 1;}
+        }
     }
+    
 }
 
 void final40() {
@@ -219,11 +251,15 @@ void final40() {
     DEBUG(("hidhfishdofsaijpfnwojfniuadbvijsdanovjabsihprfuiognrjv"));
     DEBUG(("hidhfishdofsaijpfnwojfniuadbvijsdanovjabsihprfuiognrjv"));
     DEBUG(("hidhfishdofsaijpfnwojfniuadbvijsdanovjabsihprfuiognrjv"));
-    cropValue[1] = cropValue[4];
+    // cropValue[1] = cropValue[4];
+    int f = 0; // Variable to simulate for loop within while loop; traverse through list of plots;
+    // After watering, i will reset to zero so the loop can continue if possible
+    int plotTravel[4] = {2, 6, 3, 1}; // Desired path
     while (game.GetTime() < 239) { // Runnable because at this point we are just running code until time runs out
-        int f = 0; // Variable to simulate for loop within while loop; traverse through list of plots;
-        // After watering, i will reset to zero so the loop can continue if possible
-        int plotTravel[4] = {2, 6, 3, 1}; // Desired path
+        
+        if (stopper %3 == 0) {
+            DEBUG(("ojgewipniuevoeaniughriutgheiuorgiuprnviurniucvbriugqeiugniouwernviouernviuoqbwriufbiwrghiuoenvioucnsuicnwiuorfgtr"));
+        }
         if (game.GetWaterUnits() > 0) {
             helperFinal40(plotTravel[f]);
             f++;
@@ -232,7 +268,7 @@ void final40() {
             } else if (f == 2) {
                 dohelp(4);
             }
-            if (f == 4) f = 0;
+            if (f == 4) {f = 0; stopper ++;}
         } else {
             game.MoveWatering();
             game.FillWateringCan();
@@ -295,7 +331,10 @@ void loop() {
             count = 2;
         }
         DEBUG(("ASTRO: %d", astro));
+        // stopper++;
+        // if (stopper == 8) return;
     } else {
+        // return;
         // if (count == 1) {
         //     helper(1);
         //     count = 3;
@@ -324,7 +363,10 @@ void loop() {
     if (game.GetTime() < 239) loop();
     else {
         game.GetDistanceTraveled(); game.GetPlotsExplored(); game.GetCurrentBonusIndex();
-        for (int i = 0; i < 6; i++) DEBUG(("%.2f", cropValue[i]));
+        for (int i = 0; i < 6; i++) {
+            DEBUG(("%.2f", cropValue[i]));
+            DEBUG(("%d", charge[i]));
+        }
     }
 }
 	
