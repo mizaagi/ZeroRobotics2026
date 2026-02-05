@@ -193,9 +193,10 @@ void helperFinal40(int pn) {
 	// helper determines if robot is able to do something with the plot
     int bestcrop = 1;
     for (int i = 0; i < 6; i++) {
-        if (240-game.GetTime() < 2.5*PlantTime[bestcrop-1]) cropValue[i] = 0;
+        if (240-game.GetTime() < 2.5*PlantTime[i]) cropValue[i] = 0;
         bestcrop = cropValue[i] > cropValue[bestcrop-1] ? i+1 : bestcrop;
     }
+    DEBUG(("Crop Value: %.2f", cropValue[bestcrop-1]));
     // DEBUG(("%.2f", cropValue[bestcrop-1]));
     // if (game.GetTime()-waterTimes[pn-1] > PT[pn-1]-2) {
     //     // DEBUG(("%d", charge[pn-1]));
@@ -254,7 +255,7 @@ void final40() {
     // cropValue[1] = cropValue[4];
     int f = 0; // Variable to simulate for loop within while loop; traverse through list of plots;
     // After watering, i will reset to zero so the loop can continue if possible
-    int plotTravel[4] = {2, 6, 3, 1}; // Desired path
+    int plotTravel[4] = {1, 3, 6, 2}; // Desired path
     while (game.GetTime() < 239) { // Runnable because at this point we are just running code until time runs out
         
         if (stopper %3 == 0) {
@@ -264,9 +265,8 @@ void final40() {
             helperFinal40(plotTravel[f]);
             f++;
             if (f == 1 ){
-                dohelp(5);
-            } else if (f == 2) {
                 dohelp(4);
+                dohelp(5);
             }
             if (f == 4) {f = 0; stopper ++;}
         } else {
@@ -305,12 +305,38 @@ void loop() {
         game.GetWaterUnits();
         count = 1;
     } else if (game.GetCurrentBonusIndex() < 3) {
+        // if (count == 1) {
+        //     helper(1);
+        //     count = 3;
+        // }
+        // if (count == 2) {
+        //     helper(2);
+        //     if (game.GetTime() < 220) {
+        //         game.MoveWatering(); 
+        //         game.FillWateringCan();
+        //     }
+        //     count = 1;
+        // }
+        // if (count == 3) {
+        //     helper(3);
+        //     count = 4;
+        // }
+        // if (count == 4) {
+        //     helper(4);
+        //     helper(5);
+        //     count = 6;
+        // }
+        // if (count == 6) {
+        //     helper(6);
+        //     count = 2;
+        // }
         if (count == 1) {
             helper(1);
             count = 3;
         }
         if (count == 2) {
             helper(2);
+            DEBUG(("BROTHER"));
             if (game.GetTime() < 220) {
                 game.MoveWatering(); 
                 game.FillWateringCan();
@@ -319,13 +345,10 @@ void loop() {
         }
         if (count == 3) {
             helper(3);
-            count = 4;
-        }
-        if (count == 4) {
-            helper(4);
-            helper(5);
+            dohelp(4);
+            dohelp(5);
             count = 6;
-        }
+        }  
         if (count == 6) {
             helper(6);
             count = 2;
@@ -368,6 +391,4 @@ void loop() {
             DEBUG(("%d", charge[i]));
         }
     }
-}
-	
 }
