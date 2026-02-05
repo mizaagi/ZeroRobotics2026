@@ -149,7 +149,7 @@ void helper(int pn) {
             }
         }
     } else {
-        if (game.GetTime() == 0) {wCrop(pn, bestcrop);charge[pn-1] = 1;}
+        if (Time == 0) {wCrop(pn, bestcrop);charge[pn-1] = 1;}
         if (Time-waterTimes[pn-1] > PT[pn-1]-4 || !(charge[pn-1] == 0 || charge[pn-1] == 1 || charge[pn-1] == 2)) {
             DEBUG(("Plot: %d", pn));
             if (charge[pn-1] == 2) {
@@ -189,6 +189,7 @@ void wCropFinal40(int plotNum, int cropNum) {
 
 // FINAL 40 CODE IS BELOW
 void helperFinal40(int pn) {
+    float Time = game.GetTime();
 	// helper determines if robot is able to do something with the plot
     int bestcrop = 1;
     for (int i = 0; i < 6; i++) {
@@ -203,11 +204,6 @@ void helperFinal40(int pn) {
                 if (240-Time > 2.5*PlantTime[bestcrop-1]) wCrop(pn, bestcrop);
                 else wCrop(pn, 5);
             }
-            if (game.GetWaterUnits() == 0 && Time < 232) {
-                game.MoveWatering(); 
-                game.FillWateringCan();
-            }
-            
         }
          else if (charge[pn-1] == 1 && 240-Time > PT[pn-1] && Time-waterTimes[pn-1] > PT[pn-1] && Time < 230) {
             WaterCrop(pn);
@@ -216,12 +212,12 @@ void helperFinal40(int pn) {
                 if (PT[i] + waterTimes[i] < PT[pn-1]+waterTimes[pn-1] && PT[i] != 0) someelsebetter = true;
             }
             if (!someelsebetter) {
-                game.SetWait(PT[pn-1]);
+                game.SetWait(PT[pn-1]-(Time-waterTimes[pn-1]));
                 HarvestCrop(pn);
             }
         }
     } else {
-        if (game.GetTime()-waterTimes[pn-1] > PT[pn-1]-2) {
+        if (Time-waterTimes[pn-1] > PT[pn-1]-2) {
             // DEBUG(("%d", charge[pn-1]));
             if (charge[pn-1] == 2) {
                 HarvestCrop(pn);
