@@ -125,6 +125,16 @@ void forceWater() {
         }
     }
 }
+void forceAstro() {
+    while (bonus == 0) {
+        game.MoveAstronaut();
+        bonus = game.GetBonusCrop();
+        if (game.OpponentAtAstronaut() && bonus == 0) {
+            game.MoveTo(0, 1.5, 0);        
+           
+        }
+    }
+}
 int realBestPlot() {
     float pTime            = game.GetTime();
     float bestPlotCalc = 50000;
@@ -173,8 +183,7 @@ void loop(){
         wCrop(1, bestCrop());
         wCrop(3, bestCrop());
         wCrop(4, bestCrop());
-        game.MoveAstronaut();
-        bonus = game.GetBonusCrop();
+        forceAstro();
         wCrop(5, bestCrop());
         wCrop(6, bestCrop());
         wCrop(2, bestCrop());
@@ -200,8 +209,7 @@ void loop(){
             if (harvestScorePrior != harvestScoreAfter) {
                 if (astronumafter > astronumprior && astronumafter != 3) {
                     // astro = astronumafter;
-                    game.MoveAstronaut();
-                    bonus = game.GetBonusCrop();
+                    forceAstro();
                     // int placeholder = game.GetCurrentBonusIndex();
                     // DEBUG(("place %d", placeholder));
                 }
